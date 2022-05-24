@@ -2,6 +2,8 @@ package com.example.demo.model;
 
 import java.util.Date;
 
+import javax.validation.constraints.NotNull;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -9,6 +11,17 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class productDTO {
 	@Id
 	private String id;
+	
+	@NotNull(message = "productName can not be null")
+	private String productName;
+	
+	@NotNull(message = "price can not be null")
+	private double price;
+	
+	private Date createdAt;
+	
+	private Date updatedAt;
+	
 	public productDTO() {
 		super();
 	}
@@ -44,10 +57,6 @@ public class productDTO {
 	public Date getUpdatedAt() {
 		return updatedAt;
 	}
-	private String productName;
-	private double price;
-	private Date createdAt;
-	private Date updatedAt;
 	public void setCreatedAt(Date date) {
 		createdAt = date;
 	}

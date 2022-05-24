@@ -1,12 +1,14 @@
 package com.example.demo.controller;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+
+import javax.validation.ConstraintViolationException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,14 +16,19 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.exception.ProductCollectionException;
 import com.example.demo.model.productDTO;
 import com.example.demo.repository.ProductRepository;
+import com.example.demo.service.ProductService;
 
 @RestController
 public class ProductController {
 	
 	@Autowired
 	private ProductRepository productRepo;
+	
+	@Autowired
+	private ProductService productService;
 	
 	@GetMapping("/product")
 	public ResponseEntity<?> getAllProducts(){
@@ -36,13 +43,12 @@ public class ProductController {
 	@PostMapping("/product")
 	public ResponseEntity<?> createProduct(@RequestBody productDTO product){
 		try {
-			product.setCreatedAt(new Date(System.currentTimeMillis()));
-			product.setUpdatedAt(new Date(System.currentTimeMillis()));
-			productRepo.save(product);
+			productService.createProduct(product);
 			return new ResponseEntity<productDTO> (product, HttpStatus.OK);
-		}catch(Exception e){
-			return new ResponseEntity<> (e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-			
+		}catch(ConstraintViolationException e){
+			return new ResponseEntity<> (e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);	
+		}catch (ProductCollectionException e) {
+			return new ResponseEntity<> (e.getMessage(), HttpStatus.CONFLICT);
 		}
 	}
 	
@@ -68,6 +74,16 @@ public class ProductController {
 			return new ResponseEntity<>(productSave, HttpStatus.OK);
 		}else {
 			return new ResponseEntity<>("Product not found with id " + id, HttpStatus.NOT_FOUND);
+		}
+	}
+	
+	@DeleteMapping("/product/{id}")
+	public ResponseEntity<?> deleteById(@PathVariable("id") String id){
+		try {
+			productRepo.deleteById(id);
+			return new ResponseEntity<>("Product with id "+ id + " successfully deleted!", HttpStatus.OK);
+		}catch (Exception e){
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 		}
 	}
 	
